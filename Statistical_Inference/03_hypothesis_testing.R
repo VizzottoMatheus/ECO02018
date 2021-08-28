@@ -86,9 +86,10 @@ ht(31.5, 30, 3, sd_is_pop = FALSE, n = 25, h0 = "<=", alpha = 0.05)
 
 #### 3) Uma máquina automática de café enche pacotes segundo uma
 #### distribuição normal com média μ = 500g e σ2 = 400g2. Periodicamente,
-#### recolhe-se uma amostra de 16 pacotes para verificar se a produção está
-#### sob controle. Suponha que a amostra apresentou X = 492g. Assumindo o nível 
-#### de significância de 5%, a máquina precisa ser regulada
+#### recolhe-se uma amostra de 16 pacotes para verificar se a 
+#### produção está sob controle. Suponha que a amostra apresentou
+#### X = 492g. Assumindo o nível de significância de 5%, a máquina 
+#### precisa ser regulada.
 
 ht(492, 500, sqrt(400), sd_is_pop = TRUE, n = 16, h0 = "=", alpha = 0.05)
 
