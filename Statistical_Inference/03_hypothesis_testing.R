@@ -102,7 +102,4 @@ ht(492, 500, sqrt(400), sd_is_pop = TRUE, n = 16, h0 = "=", alpha = 0.05)
 
 ht(118, 115, 20, sd_is_pop = FALSE, n = 20, h0 = "=", alpha = 0.05)
 
-
-
-
-
+############
