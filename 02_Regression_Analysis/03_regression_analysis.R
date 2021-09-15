@@ -64,7 +64,10 @@ summary(model)
 # o que nos leva a rejeitar a hipótese nula de que não existe 
 # relação entre as variáveis.
 
-# VER TESTE F
+# O teste F também se mostrou significativo ao nível de 1%,
+# indicando que a inclusão da variável independente no modelo
+# proporciona melhor explicação do consumo do que utilizando
+# somente a constante B0.
 
 # e)
 ggplot(df, aes(x = RENDA, y = CONSUMO)) + 
@@ -88,4 +91,10 @@ ggplot(df_model, aes(x = ESTIMADO, y = RESIDUOS)) +
   scale_y_continuous(limits = c(-6, 6)) +
   scale_x_continuous(limits = c(60, 200)) 
 
-summary(lm(df_model$RESIDUOS ~ df_model$ESTIMADO))
+# Os resíduos flutuam aleatoriamente em torno da origem,
+# o que sugere ser razoável assumir uma relação linear
+# entre as variáveis. Além disso, não fica explícita 
+# uma alteração na variância nem é possível caracterizar
+# algum dos resíduos como outlier.
+
+#summary(lm(df_model$RESIDUOS ~ df_model$ESTIMADO))
