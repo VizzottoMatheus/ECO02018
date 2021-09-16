@@ -21,7 +21,6 @@ ggplot(df, aes(y = CONSUMO)) + geom_boxplot() + theme_bw() +
 # RENDA
 mean(df$RENDA) # 170
 median(df$RENDA) # 50% DAS OBSERVAÇÕES TÊM ATÉ 170 DE CONSUMO
-# ATENÇÃO: MÉDIA = MEDIANA
 ggplot(df, aes(y = RENDA)) + geom_boxplot() + theme_bw() +
   scale_y_continuous(limits = c(0, 300))
 
