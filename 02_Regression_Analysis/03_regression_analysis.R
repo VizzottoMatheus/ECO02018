@@ -1,35 +1,31 @@
 library(ggplot2)
-
+library(tseries)
 
 # DATA
 Y <- c(75,  85,  98, 108, 118, 135, 145, 157, 175, 180)
 X <- c(80, 100, 120, 140, 160, 180, 200, 220, 240, 260)
 df <- as.data.frame(cbind(Y, X))
 colnames(df) <- c("CONSUMO", "RENDA")
-df
+
+
 
 # a) Faça a análise descritiva dos dados e interprete o teste Jarque-Bera (no Eviews).
-# b) Estime a função consumo (Y=consumo; X=renda).
-# c) Interprete os parâmetros da equação obtida.
-# d) Faça a inferência estatística, ou seja, interprete os resultados para os testes "t" , R2 e F.
-# e) Mostre o gráfico dos valores de Y (observados, estimados) e resíduos e interprete o mesmo.
-
-# a)
-
-### UNIDIMENSIONAL
+###  ANÁLISE UNIDIMENSIONAL
 
 # CONSUMO
 mean(df$CONSUMO) # 127,6
 median(df$CONSUMO) # 50% DAS OBSERVAÇÕES TÊM ATÉ 126,5 DE CONSUMO
-ggplot(df, aes(y = CONSUMO)) + geom_boxplot() + theme_bw()
+ggplot(df, aes(y = CONSUMO)) + geom_boxplot() + theme_bw() +
+  scale_y_continuous(limits = c(0, 300))
 
 # RENDA
 mean(df$RENDA) # 170
 median(df$RENDA) # 50% DAS OBSERVAÇÕES TÊM ATÉ 170 DE CONSUMO
 # ATENÇÃO: MÉDIA = MEDIANA
-ggplot(df, aes(y = RENDA)) + geom_boxplot() + theme_bw()
+ggplot(df, aes(y = RENDA)) + geom_boxplot() + theme_bw() +
+  scale_y_continuous(limits = c(0, 300))
 
-### BIDIMENSIONAL
+### ANÁLISE BIDIMENSIONAL
 cor(df$CONSUMO, df$RENDA) # HÁ CORRELAÇÃO ELEVADA ENTRE OS DADOS DE CONSUMO E RENDA
 ggplot(df, aes(x = RENDA, y = CONSUMO)) + 
   geom_point() + 
@@ -37,13 +33,23 @@ ggplot(df, aes(x = RENDA, y = CONSUMO)) +
   scale_y_continuous(limits = c(0, 200)) +
   scale_x_continuous(limits = c(0, 300))
 
-# b)
+### JARQUE-BERA - TESTE DE NORMALIDADE
+jarque.bera.test(df$CONSUMO)
+jarque.bera.test(df$RENDA)
+# Ambos os testes apresentaram p-valor superior a 10%,
+# o que nos leva a aceitar a hipótese nula de normalidade
+# da distribuição tanto dos dados de consumo quanto de renda.
 
+
+
+# b) Estime a função consumo (Y=consumo; X=renda).
 model <- lm(df$CONSUMO ~ df$RENDA)
 
 summary(model) 
 
-# c)
+
+
+# c) Interprete os parâmetros da equação obtida.
 
 # a regressão entre os dados disponíveis estimou que,
 # a cada unidade a mais de renda do indivíduo, seu consumo
@@ -52,7 +58,9 @@ summary(model)
 # mesmo sem renda disponível, o indivíduo ainda apresentará
 # algum nível de consumo.
 
-# d)
+
+
+# d) Faça a inferência estatística, ou seja, interprete os resultados para os testes "t" , R2 e F.
 
 # O R2 é a medida que mostra quão bem uma variável explica
 # outra (R2 = 1 - (Soma do quadrado dos resíduos)/(Soma dos quadrados totais)).
@@ -69,7 +77,9 @@ summary(model)
 # proporciona melhor explicação do consumo do que utilizando
 # somente a constante B0.
 
-# e)
+
+
+# e) Mostre o gráfico dos valores de Y (observados, estimados) e resíduos e interprete o mesmo.
 ggplot(df, aes(x = RENDA, y = CONSUMO)) + 
   geom_point(size = 2) + geom_smooth(method = "lm", se = FALSE, col = "red", alpha = 0.6) +
   theme_bw() + 
@@ -97,4 +107,5 @@ ggplot(df_model, aes(x = ESTIMADO, y = RESIDUOS)) +
 # uma alteração na variância nem é possível caracterizar
 # algum dos resíduos como outlier.
 
-#summary(lm(df_model$RESIDUOS ~ df_model$ESTIMADO))
+summary(lm(df_model$RESIDUOS ~ df_model$ESTIMADO)) # relação entre resíduos e valores
+                                                   # estimados não significativa
