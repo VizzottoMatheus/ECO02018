@@ -10,8 +10,19 @@ scaler <- function(x, a, d) {
 
 ################### EXEMPLOS ##############
 
+#### 1
+# a) P(0 <= z <= 1.73)
+pnorm(1.73) - pnorm(0)
 
-#### 1) As vendas de um determinado produto tem distribuicao aproximadamente
+# b) P(-1.73 <= z <= 0)
+pnorm(0) - pnorm(-1.73) # simétrico à letra a)
+
+# c) P(z >= 1.73)
+1 - pnorm(1.73)
+
+### 2
+
+#### a) As vendas de um determinado produto tem distribuicao aproximadamente
 #### normal, com media 500 e desvio padrao 50. Se a empresa decide fabricar
 #### 600 unidades no mes em estudo, qual e a probabilidade de que nao possa
 #### atender a todos os pedidos desse mes, por estar com a producao esgotada?
@@ -31,7 +42,7 @@ prob <- (1 - pnorm(z))*100
 print(paste("Probabilidade de que vendas > produção:", round(prob,2), "%")) # 2,28%
 
 
-#### 2) O diâmetro X de rolamentos de esfera fabricados por certa fábrica tem
+#### b) O diâmetro X de rolamentos de esfera fabricados por certa fábrica tem
 #### distribuição N(0,6140; 0,0025). O lucro T de cada esfera depende do seu diâmetro, e
 #### T = 0,10 se a esfera é boa (0,6100 < X < 0,618)
 #### T = 0,05 se a esfera é recuperável (0,6080 < X < 0,6100) ou (0,6180 < X < 0,6200)
