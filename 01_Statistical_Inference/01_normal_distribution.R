@@ -20,7 +20,15 @@ pnorm(0) - pnorm(-1.73) # simétrico à letra a)
 # c) P(z >= 1.73)
 1 - pnorm(1.73)
 
-### 2
+### 2: para N ~ (10, 4)
+
+# a) P(8 <= x <= 10)
+pnorm(scaler(10, 10, 2)) - pnorm(scaler(8, 10, 2))
+
+# b) P(8 <= x >= 11)
+pnorm(scaler(8, 10, 2)) + (1 - pnorm(scaler(11, 10, 2)))
+
+### 3
 
 #### a) As vendas de um determinado produto tem distribuicao aproximadamente
 #### normal, com media 500 e desvio padrao 50. Se a empresa decide fabricar
