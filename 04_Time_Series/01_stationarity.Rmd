@@ -1,0 +1,70 @@
+---
+title: "Exercício 8 - estacionariedade"
+output: pdf_document
+---
+
+```{r, echo = FALSE, message = FALSE}
+library(forecast)
+library(readxl)
+#library(TSstudio)
+library(ggplot2)
+library(gridExtra)
+library(tseries)
+
+path <- "C:/Users/user/Desktop/Faculdade/TÓPICOS EM ECONOMETRIA/Exercícios/Exercício 8  - Estacionariedade.xls"
+
+df <- read_excel(path, sheet = "data")
+
+df_start <- min(df$Ano)
+df_end <- max(df$Ano)
+
+# RPD
+rpd <- df$RPD
+rpd_ts <- ts(rpd, start = c(df_start, 1), end = c(df_end, 4), freq = 4)
+rpd_ts_diff <- diff(rpd_ts)
+
+dpc <- df$DPC
+dpc_ts <- ts(dpc, start = c(df_start, 1), end = c(df_end, 4), freq = 4)
+dpc_ts_diff <- diff(dpc_ts)
+
+#ts_plot(rpd_ts, title = "RPD")
+#ts_plot(dpc_ts, title = "DPC")
+```
+
+
+# RPD
+```{r, echo = FALSE}
+p1 <- autoplot(rpd_ts) + theme_bw() + labs(title = "RPD", x = "Trimestre", y = "Valor")
+p2 <- ggAcf(rpd_ts) + labs(title = "Correlograma: RPD em nível")
+p3 <- ggAcf(rpd_ts_diff) + labs(title = "Correlogram: RPD em primeira diferença")
+grid.arrange(p1, p2, p3, nrow = 3)
+```
+A visualização da série em nível tanto no gráfico de linhas quanto no correlograma indica a presença de tendência na série. Isso indica a necessidade de diferenciação, observada no segundo correlograma. Nesse ponto, nenhuma defasagem da série se mostrou significativa, sendo possível considerá-la estacionária. Para uma análise mais robusta, faz-se o teste ADF (Teste de Dickey-Fuller Aumentado):
+
+```{r, echo = FALSE}
+adf.test(df$RPD)
+```
+Pela estatística do teste, não é possível rejeitar a hipótese nula de que a série em nível apresenta raiz unitária. Agora, aplica-se o teste à serie diferenciada:
+```{r, echo = FALSE}
+adf.test(diff(df$RPD))
+```
+Com um p-valor significativo, rejeita-se a hipótese nula e há, portanto, evidências de que a série RPD é estacionária.
+
+# DPC
+```{r, echo = FALSE}
+p1 <- autoplot(dpc_ts) + theme_bw() + labs(title = "DPC", x = "Trimestre", y = "Valor")
+p2 <- ggAcf(dpc_ts) + labs(title = "Correlograma: DPC em nível") + theme_bw()
+p3 <- ggAcf(dpc_ts_diff) + labs(title = "Correlograma: DPC em primeira diferença")
+grid.arrange(p1, p2, p3, nrow = 3)
+```
+A série DPC aparenta ser semelhante à RPD, mas apresenta a defasagem 3 como significativa no correlograma da primeira diferença. Logo, é necessário realizar o teste ADF novamente:
+```{r, echo = FALSE}
+adf.test(df$DPC)
+```
+Pela estatística do teste, não é possível rejeitar a hipótese nula de que a série em nível apresenta raiz unitária. Agora, aplica-se o teste à serie diferenciada:
+```{r, echo = FALSE}
+adf.test(diff(df$DPC))
+```
+Com um p-valor de 0.1673, a estatística do teste não permite concluir que a série se tornou estacionária após a primeira diferenciação.
+
+
