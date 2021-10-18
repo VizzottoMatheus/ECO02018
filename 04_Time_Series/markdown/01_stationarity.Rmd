@@ -55,6 +55,7 @@ p2 <- ggAcf(dpc_ts) + labs(title = "Correlograma: DPC em nível") + theme_bw()
 p3 <- ggAcf(dpc_ts_diff) + labs(title = "Correlograma: DPC em primeira diferença")
 grid.arrange(p1, p2, p3, nrow = 3)
 ```
+
 A série DPC aparenta ser semelhante à RPD, mas apresenta a defasagem 3 como significativa no correlograma da primeira diferença. Logo, é necessário realizar o teste ADF novamente:
 
 ```{r, echo = FALSE}
@@ -65,6 +66,8 @@ Pela estatística do teste, não é possível rejeitar a hipótese nula de que a
 ```{r, echo = FALSE}
 adf.test(diff(df$DPC))
 ```
+
 Com um p-valor de 0.1673, a estatística do teste não permite concluir que a série se tornou estacionária após a primeira diferenciação.
+
 
 
