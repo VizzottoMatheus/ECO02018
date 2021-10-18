@@ -58,10 +58,12 @@ p3 <- ggAcf(dpc_ts_diff) + labs(title = "Correlograma: DPC em primeira diferenç
 grid.arrange(p1, p2, p3, nrow = 3)
 ```
 A série DPC aparenta ser semelhante à RPD, mas apresenta a defasagem 3 como significativa no correlograma da primeira diferença. Logo, é necessário realizar o teste ADF novamente:
+
 ```{r, echo = FALSE}
 adf.test(df$DPC)
 ```
 Pela estatística do teste, não é possível rejeitar a hipótese nula de que a série em nível apresenta raiz unitária. Agora, aplica-se o teste à serie diferenciada:
+
 ```{r, echo = FALSE}
 adf.test(diff(df$DPC))
 ```
