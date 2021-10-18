@@ -40,7 +40,6 @@ p3 <- ggAcf(rpd_ts_diff) + labs(title = "Correlograma: RPD em primeira diferenç
 grid.arrange(p1, p2, p3, nrow = 3)
 ```
 A visualização da série em nível tanto no gráfico de linhas quanto no correlograma indica a presença de tendência na série. Isso indica a necessidade de diferenciação, observada no segundo correlograma. Nesse ponto, nenhuma defasagem da série se mostrou significativa, sendo possível considerá-la estacionária. Para uma análise mais robusta, faz-se o teste ADF (Teste de Dickey-Fuller Aumentado):
-
 ```{r, echo = FALSE}
 adf.test(df$RPD)
 ```
@@ -49,7 +48,6 @@ Pela estatística do teste, não é possível rejeitar a hipótese nula de que a
 adf.test(diff(df$RPD))
 ```
 Com um p-valor significativo, rejeita-se a hipótese nula e há, portanto, evidências de que a série RPD é estacionária.
-
 # DPC
 ```{r, echo = FALSE}
 p1 <- autoplot(dpc_ts) + theme_bw() + labs(title = "DPC", x = "Trimestre", y = "Valor")
