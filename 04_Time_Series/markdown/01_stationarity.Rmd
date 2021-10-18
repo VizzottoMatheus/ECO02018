@@ -36,7 +36,7 @@ dpc_ts_diff <- diff(dpc_ts)
 ```{r, echo = FALSE}
 p1 <- autoplot(rpd_ts) + theme_bw() + labs(title = "RPD", x = "Trimestre", y = "Valor")
 p2 <- ggAcf(rpd_ts) + labs(title = "Correlograma: RPD em nível")
-p3 <- ggAcf(rpd_ts_diff) + labs(title = "Correlogram: RPD em primeira diferença")
+p3 <- ggAcf(rpd_ts_diff) + labs(title = "Correlograma: RPD em primeira diferença")
 grid.arrange(p1, p2, p3, nrow = 3)
 ```
 A visualização da série em nível tanto no gráfico de linhas quanto no correlograma indica a presença de tendência na série. Isso indica a necessidade de diferenciação, observada no segundo correlograma. Nesse ponto, nenhuma defasagem da série se mostrou significativa, sendo possível considerá-la estacionária. Para uma análise mais robusta, faz-se o teste ADF (Teste de Dickey-Fuller Aumentado):
