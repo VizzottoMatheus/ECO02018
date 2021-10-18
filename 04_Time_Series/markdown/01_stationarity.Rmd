@@ -19,11 +19,11 @@ df_start <- min(df$Ano)
 df_end <- max(df$Ano)
 
 # RPD
-rpd <- df$RPD
+rpd <- log(df$RPD)
 rpd_ts <- ts(rpd, start = c(df_start, 1), end = c(df_end, 4), freq = 4)
 rpd_ts_diff <- diff(rpd_ts)
 
-dpc <- df$DPC
+dpc <- log(df$DPC)
 dpc_ts <- ts(dpc, start = c(df_start, 1), end = c(df_end, 4), freq = 4)
 dpc_ts_diff <- diff(dpc_ts)
 
