@@ -6,12 +6,11 @@ output: pdf_document
 ```{r, echo = FALSE, message = FALSE}
 library(forecast)
 library(readxl)
-#library(TSstudio)
 library(ggplot2)
 library(gridExtra)
 library(tseries)
 
-path <- "C:/Users/user/Desktop/Faculdade/TÓPICOS EM ECONOMETRIA/Exercícios/Exercício 8  - Estacionariedade.xls"
+path <- "../data/Estacionariedade.xls"
 
 df <- read_excel(path, sheet = "data")
 
@@ -26,9 +25,6 @@ rpd_ts_diff <- diff(rpd_ts)
 dpc <- log(df$DPC)
 dpc_ts <- ts(dpc, start = c(df_start, 1), end = c(df_end, 4), freq = 4)
 dpc_ts_diff <- diff(dpc_ts)
-
-#ts_plot(rpd_ts, title = "RPD")
-#ts_plot(dpc_ts, title = "DPC")
 ```
 
 
