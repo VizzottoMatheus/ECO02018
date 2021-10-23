@@ -1,61 +1,84 @@
 
 library(forecast)
 library(readxl)
-library(timeSeries)
+library(tseries)
 library(ggplot2)
+library(gridExtra)
 
+#setwd("C:/Users/user/Projetos/ECO02018/04_Time_Series/markdown")
 path <- "../data/ARIMA.xls"
 df <- read_excel(path, sheet = "data")
-
-# SUBSETS
-rpd <- df$RPD
-dpc <- df$DPC
 
 # DATES
 date_min <- min(df$Ano)
 date_max <- max(df$Ano)
 
-# TS OBJECTS
+########## RPD ##########
+rpd <- df$RPD
 rpd_ts <- ts(rpd, start = c(date_min, 1), end = c(date_max, 4), frequency = 4)
-dpc_ts <- ts(dpc, start = c(date_min, 1), end = c(date_max, 4), frequency = 4)
 
-# CHARTS
+
+# GRÁFICOS
 autoplot(rpd_ts) + theme_bw() + labs(x = "Trimestre", y = "Valor", title = "RPD")
-autoplot(dpc_ts) + theme_bw() + labs(x = "Trimestre", y = "Valor", title = "DPC")
+p1 <- ggAcf(rpd_ts) + theme_bw() + labs(title = element_blank())
+p2 <- ggPacf(rpd_ts) + theme_bw() + labs(title = element_blank())
+grid.arrange(p1, p2, ncol = 2, top = "RPD")
 
-### STATIONARITY TEST
+# TESTES
+adf.test(rpd_ts) # não estacionária em nível
+rpd_ts_diff1 <- diff(rpd_ts)
+adf.test(rpd_ts_diff1) # I = 1 
+adf.test(rpd_ts_diff1, k = 2) # k = número de lags incluídos no teste
+pp.test(rpd_ts_diff1) # teste Phillips-Perron (corrobora ADF?)
 
-# RPD
-ggAcf(rpd_ts) + theme_bw() + labs(title = "RPD")
-adf.test(rpd_ts)
-adf.test(diff(rpd_ts)) # I = 1
-ggAcf(diff(rpd_ts)) + theme_bw() + labs(title = "RPD em primeira diferença")
-ggPacf(diff(rpd_ts)) + theme_bw() + labs(title = "RPD em primeira diferença")
+# GRÁFICOS SÉRIE DIFERENCIADA
+p1 <- ggAcf(rpd_ts_diff1) + theme_bw() + labs(title = element_blank())
+p2 <- ggPacf(rpd_ts_diff1) + theme_bw() + labs(title = element_blank())
+grid.arrange(p1, p2, ncol = 2, top = "RPD em primeira diferença")
 
-# DPC
-ggAcf(dpc_ts) + theme_bw() + labs(title = "DPC")
-adf.test(dpc_ts)
-ggAcf(diff(dpc_ts)) + theme_bw() + labs(title = "DPC em primeira diferença")
-adf.test(diff(dpc_ts))
-adf.test(diff(diff(dpc_ts))) # I = 2
-ggAcf(diff(diff(dpc_ts))) + theme_bw() + labs(title = "RPD")
-ggPacf(diff(diff(dpc_ts))) + theme_bw() + labs(title = "RPD")
+### MODELOS
 
-
-### MODELS
-aa_ <- auto.arima(rpd_ts, stepwise = FALSE, approximation = FALSE)
+# AUTOARIMA
+aa_ <- auto.arima(rpd_ts, D = 1, stepwise = FALSE, approximation = FALSE)
 summary(aa_)
 
-arima_rpd_01 <- Arima(rpd_ts, order = c(5, 1, 5))
-plot(rpd_ts)
-lines(fitted(arima_rpd_01), col = "red")
+# LAG 5
+arima_rpd_01 <- arima(rpd_ts, order = c(0, 1, 0), seasonal = list(order = c(1,0,1), period = 5))
 summary(arima_rpd_01)
-checkresiduals(arima_rpd_01)
+checkresiduals(arima_rpd_01) # H0 Ljung-Box: ausência de autocorrelação 
+
+
+# MA 5, AR 12
+arima_rpd_02 <- arima(rpd_ts, order = c(0, 1, 0), seasonal = list(order = c(1,0,1), period = 12))
+summary(arima_rpd_02)
+checkresiduals(arima_rpd_02) # H0 Ljung-Box: ausência de autocorrelação 
+
 
 
 arima_rpd_01 <- arima(rpd_ts, order = c(5, 0, 5), 
                       fixed = c(0, 0, 0, 0, NA, 0, 0, 0, 0, NA, NA))
 
-plot(rpd_ts)
-lines(fitted(arima_rpd_01), col = "red")
-summary(arima_rpd_01)
+
+####### DPC #########
+dpc <- df$DPC
+dpc_ts <- ts(dpc, start = c(date_min, 1), end = c(date_max, 4), frequency = 4)
+
+# GRÁFICOS
+autoplot(dpc_ts) + theme_bw() + labs(x = "Trimestre", y = "Valor", title = "DPC")
+p1 <- ggAcf(dpc_ts) + theme_bw() + labs(title = element_blank())
+p2 <- ggPacf(dpc_ts) + theme_bw() + labs(title = element_blank())
+grid.arrange(p1, p2, ncol = 2, top = "DPC")
+
+# TESTES
+adf.test(dpc_ts) # não estacionária em nível
+dpc_ts_diff1 <- diff(dpc_ts)
+adf.test(dpc_ts_diff1) 
+adf.test(dpc_ts_diff1, k = 2) # k = número de lags incluídos no teste
+pp.test(dpc_ts_diff1) # teste Phillips-Perron (corrobora ADF?) --> I = 1
+
+# GRÁFICOS SÉRIE DIFERENCIADA
+p1 <- ggAcf(dpc_ts_diff1) + theme_bw() + labs(title = element_blank())
+p2 <- ggPacf(dpc_ts_diff1) + theme_bw() + labs(title = element_blank())
+grid.arrange(p1, p2, ncol = 2, top = "RPD em primeira diferença")
+
+
