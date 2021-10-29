@@ -4,6 +4,9 @@ library(lubridate)
 library(TSstudio)
 library(ggplot2)
 library(scales)
+library(zoo)
+library(strucchange)
+
 
 df_cidades <- oil_data_cities()
 df_rs <- oil_data_state()
@@ -39,7 +42,7 @@ ts_plot(df,
         color = "green",
         Ygrid = TRUE,
         Xgrid = TRUE,
-        title = "VENDAS DE ÓLEO DIESEL NO RIO GRANDE DO SUL (METROS CÚBICOS")
+        title = "VENDAS DE ÓLEO DIESEL NO RIO GRANDE DO SUL (METROS CÚBICOS)")
 
 ### DECOMPOSIÇÃO
 
@@ -65,3 +68,17 @@ ggsubseriesplot(diff(diesel_ts)) +
   theme_bw() +
   scale_y_continuous(labels = scales::number) +
   labs(title = "SAZONALIDADE DAS VENDAS DE ÓLEO DIESEL (SÉRIE DIFERENCIADA")
+
+
+######### QUEBRA ESTRUTURAL
+
+model1 <- Fstats(df_rs$VENDAS~1, from = 0.01)
+sctest(model1)
+
+breakpoints(df_rs$VENDAS~1)
+
+quebras <- breakpoints(df_rs$VENDAS~1)
+quebras <- quebras$breakpoints
+
+# DATAS COM POSSÍVEL QUEBRA ESTRUTURAL
+df_rs[quebras,1]

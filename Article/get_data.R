@@ -14,10 +14,8 @@ oil_data_cities <- function() {
   diesel_2000_2018 <- NULL
   for (ano in 2000:2018) {
     url <- paste0(path, ano, ".csv")
-    #print(url)
-    df <- read.csv(url, sep = ";", fileEncoding = "latin1", dec = ",")
+    df <- read.csv(url, sep = ";", encoding = "UTF-8", dec = ",")
     colnames(df) <- c("ANO", "ESTADO", "CODIBGE", "MUNICIPIO", "VENDAS")
-    #print(head(df))
     diesel_2000_2018 <- bind_rows(diesel_2000_2018, df)
   }
   diesel_2000_2018$VENDAS <- as.numeric(diesel_2000_2018$VENDAS)
@@ -45,11 +43,13 @@ oil_data_cities <- function() {
 
 oil_data_state <- function() {
   path <- "https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/arquivos/vdpb/vendas-derivados-petroleo-e-etanol/vendas-derivados-petroleo-etanol-m3-1990-2021.csv"
-  derivados <- read.csv(path, sep = ";", fileEncoding = "latin1", dec = ",")
-  diesel_estados <- filter(derivados, PRODUTO == "ÓLEO DIESEL")
-  diesel_rs <- filter(diesel_estados, UNIDADE.DA.FEDERAÇÃO == "RIO GRANDE DO SUL")
+  derivados <- read.csv(path, sep = ";", dec = ",",  encoding = "UTF-8")
+  colnames(derivados) <- c("ANO", "MES", "GRANDE.REGIAO", "UNIDADE.DA.FEDERACAO", "PRODUTO", "VENDAS")
+  oleo_diesel <- tail(unique(derivados$PRODUTO),1)
+  diesel_estados <- filter(derivados, PRODUTO == oleo_diesel)
+  diesel_rs <- filter(diesel_estados, UNIDADE.DA.FEDERACAO == "RIO GRANDE DO SUL")
   
-  diesel_rs$MÊS <- diesel_rs$MÊS %>%
+  diesel_rs$MES <- diesel_rs$MES %>%
         gsub('JAN', "01", .) %>%
         gsub('FEV', "02", .) %>%
         gsub('MAR', "03", .) %>%
@@ -63,7 +63,7 @@ oil_data_state <- function() {
         gsub('NOV', "11", .) %>%
         gsub('DEZ', "12", .)
   
-  diesel_rs$ANO_MES <- as.Date(paste0(diesel_rs$ANO, "-", diesel_rs$MÊS, "-01"))
+  diesel_rs$ANO_MES <- as.Date(paste0(diesel_rs$ANO, "-", diesel_rs$MES, "-01"))
   diesel_rs <- arrange(diesel_rs, ANO_MES)
   df_diesel_rs <- select(diesel_rs, c("ANO_MES", "VENDAS"))
   return(df_diesel_rs)
