@@ -29,7 +29,14 @@ ts_info(diesel_ts)
 
 ### VISUALIZAÇÃO INICIAL
 
+# SÉRIE EM NÍVEL
 ts_plot(diesel_ts,
+        color = "green",
+        Ygrid = TRUE,
+        Xgrid = TRUE,
+        title = "VENDAS DE ÓLEO DIESEL NO RIO GRANDE DO SUL (METROS CÚBICOS)")
+# LOGARITMO DA SÉRIE EM NÍVEL (CORRIGE TENDÊNCIA NÃO-LINEAR)
+ts_plot(log(diesel_ts),
         color = "green",
         Ygrid = TRUE,
         Xgrid = TRUE,
@@ -49,36 +56,61 @@ ts_plot(df,
 dec <- decompose(diesel_ts)
 plot(dec)
 
-ggseasonplot(diesel_ts) + 
+### ANÁLISE DE SAZONALIDADE
+
+ggseasonplot(diesel_ts, continuous = TRUE) + 
   theme_bw() +
   scale_y_continuous(labels = scales::number) +
   labs(title = "SAZONALIDADE DAS VENDAS DE ÓLEO DIESEL")
-
-ggseasonplot(diff(diesel_ts)) + 
-  theme_bw() +
-  scale_y_continuous(labels = scales::number) +
-  labs(title = "SAZONALIDADE DAS VENDAS DE ÓLEO DIESEL (SÉRIE DIFERENCIADA")
 
 ggsubseriesplot(diesel_ts) +
   theme_bw() +
   scale_y_continuous(labels = scales::number) +
   labs(title = "SAZONALIDADE DAS VENDAS DE ÓLEO DIESEL")
 
-ggsubseriesplot(diff(diesel_ts)) +
+diesel_ts_diff <- diff(diesel_ts) # cria série diferenciada
+
+ggseasonplot(diesel_ts_diff) + 
   theme_bw() +
   scale_y_continuous(labels = scales::number) +
   labs(title = "SAZONALIDADE DAS VENDAS DE ÓLEO DIESEL (SÉRIE DIFERENCIADA")
 
+ggsubseriesplot(diesel_ts_diff) +
+  theme_bw() +
+  scale_y_continuous(labels = scales::number) +
+  labs(title = "SAZONALIDADE DAS VENDAS DE ÓLEO DIESEL (SÉRIE DIFERENCIADA")
+
+reg_seas <- tslm(diesel_ts ~ season) # MESES SÃO SIGNIFICATIVOS?
+summary(reg_seas) # JAN, MAR, ABRI, MAI, AGO, SET, OUT, NOV
+
 
 ######### QUEBRA ESTRUTURAL
 
-model1 <- Fstats(df_rs$VENDAS~1, from = 0.01)
-sctest(model1)
-
-breakpoints(df_rs$VENDAS~1)
+#model1 <- Fstats(df_rs$VENDAS~1, from = 0.01)
+#sctest(model1)
 
 quebras <- breakpoints(df_rs$VENDAS~1)
-quebras <- quebras$breakpoints
+quebras
 
 # DATAS COM POSSÍVEL QUEBRA ESTRUTURAL
-df_rs[quebras,1]
+quebras <- quebras$breakpoints
+dates <- as.Date(df_rs[quebras,1])
+values <- df_rs[quebras,2]
+df_bp <- as.data.frame(cbind(dates, values))
+df_bp$dates <- as.Date(df_bp$dates)
+
+ggplot(df_rs, aes(x = ANO_MES, y = VENDAS)) +
+  geom_line() +
+  geom_point(data = df_bp, aes(x = dates, y = values), col = "red", size = 2)
+
+
+######### MODELOS
+
+
+# 1
+reg_seas <- tslm(diesel_ts ~ season) # MESES SÃO SIGNIFICATIVOS?
+accuracy(reg_seas$fitted.values, df_rs$VENDAS)
+
+# 2
+reg_seas_tren <- tslm(diesel_ts ~ season + trend) # MESES SÃO SIGNIFICATIVOS?
+accuracy(reg_seas_tren$fitted.values, df_rs$VENDAS)

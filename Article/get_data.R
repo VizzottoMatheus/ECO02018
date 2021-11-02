@@ -1,4 +1,9 @@
 library(dplyr)
+library(jsonlite)
+
+# FAZ DOWNLOAD DE DADOS DE VENDA DE DIESEL E IMPROTA DADOS DE SOJA, MILHO E 
+# TRIGO, ESTES TRÊS DIRETAMENTE AO AMBIENTE
+
 
 ######  FONTE  #####
 
@@ -68,3 +73,16 @@ oil_data_state <- function() {
   df_diesel_rs <- select(diesel_rs, c("ANO_MES", "VENDAS"))
   return(df_diesel_rs)
 }
+
+################# DADOS DE AGRICULTURA E PECUÁRIA
+
+# FONTE: https://apisidra.ibge.gov.br/         # (IBGE)
+
+url_cste <- "http://api.sidra.ibge.gov.br/values/"
+soja<- paste0(url_cste, "t/5457/p/all/v/8331,216,214,215/c782/40124/n3/43")
+milho<- paste0(url_cste, "t/5457/p/all/v/8331,216,214,215/c782/40122/n3/43")
+trigo<- paste0(url_cste, "t/5457/p/all/v/8331,216,214,215/c782/40127/n3/43")
+
+soja_df <- fromJSON(soja)
+milho_df <- fromJSON(soja)
+trigo_df <- fromJSON(soja)
