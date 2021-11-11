@@ -165,6 +165,20 @@ plot(diesel_ts)
 lines(arima3$fitted, col = "red")
 
 # HOLT WINTERS
+shallow_grid <- ts_grid(diesel_ts,
+                        model = "HoltWinters",
+                        periods = 6,
+                        window_space = 6,
+                        window_test = 12,
+                        hyper_params = list(alpha = seq(0,1,0.1),
+                                            beta = seq(0,1,0.1),
+                                            gamma = seq(0,1,0.1)),
+                        parallel = TRUE,
+                        n.cores = 8)
+plot_grid(shallow_grid) # alfa: entre 0,1 e 0,5; beta: entre 0 e 0,1; gama: entre 0,1 e 0,3
+plot_grid(shallow_grid, type = "3D", top = 250)
+
+
 deep_grid <- ts_grid(diesel_ts,
                      model = "HoltWinters",
                      periods = 6,
@@ -172,6 +186,21 @@ deep_grid <- ts_grid(diesel_ts,
                      window_test = 12,
                      hyper_params = list(alpha = seq(0.1,0.5,0.01),
                                          beta = seq(0,0.1,0.01),
-                                         gamma = seq(0.2,0.4,0.01)),
+                                         gamma = seq(0.1,0.3,0.01)),
                      parallel = TRUE,
                      n.cores = 8)
+plot_grid(deep_grid)
+plot_grid(deep_grid, type = "3D", top = 250)
+
+md_hw_grid <- HoltWinters(diesel_ts,
+                          alpha = deep_grid$alpha,
+                          beta = deep_grid$beta,
+                          gamma = deep_grid$gamma)
+
+accuracy(md_hw_grid$fitted, diesel_ts)
+
+plot(diesel_ts)
+lines(md_hw_grid$fitted[,1], col = "red")
+#plot(md_hw_grid$fitted[,2]) # nível
+#plot(md_hw_grid$fitted[,3]) # tendência
+#plot(md_hw_grid$fitted[,4]) # sazonalidade
