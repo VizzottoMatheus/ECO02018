@@ -8,7 +8,6 @@ library(zoo)
 library(strucchange)
 library(tseries)
 
-
 df_cidades <- oil_data_cities()
 df_rs <- oil_data_state()
 
@@ -204,7 +203,45 @@ test_forecast(actual = diesel_ts,
               forecast.obj = arima3_fc,
               test = diesel_test)
 
-# 6 - HOLT WINTERS
+# 6: MODELO 5 COM TRANSFORMAÇÃO LOGARITMICA
+
+diesel_log_train
+diesel_log_train_diff <- diff(diesel_log_train)
+ggAcf(diesel_log_train)
+ggPacf(diesel_log_train)
+
+ggAcf(diesel_log_train_diff, lag.max = 48)
+ggPacf(diesel_log_train_diff, lag.max = 48)
+
+ggAcf(diff(diesel_log_train_diff,12), lag.max = 48)
+ggPacf(diff(diesel_log_train_diff,12), lag.max = 48)
+
+arima4 <- Arima(diesel_log_train, order = c(5, 1, 2), seasonal = list(order = c(1, 1, 1)), method = "ML")
+arima4$aic
+arima4$bic
+checkresiduals(arima4)
+arima4_fc <- forecast(arima4, h = 12)
+accuracy(arima4_fc, diesel_log_test)
+accuracy(exp(arima4_fc$mean), diesel_test) # valores transformados
+
+
+plot_forecast(arima4_fc)
+test_forecast(actual = diesel_ts_log,
+              forecast.obj = arima4_fc,
+              test = diesel_log_test)
+
+#comparando modelos 5 e 6
+#arima3$aic NÃO SE COMPARAM MODELOS COM AIC E BIC QUANDO DIFEREM NOS DADOS (NORMAL VS. LOG)
+#arima3$bic
+#arima4$aic
+#arima4$bic
+
+accuracy(arima3_fc, diesel_test)
+accuracy(arima4_fc, diesel_log_test)
+accuracy(exp(arima4_fc$mean), diesel_test) # com transormação logaritmica é melhor
+
+
+# 7 - HOLT WINTERS
 #shallow_grid <- ts_grid(diesel_ts,
 #                        model = "HoltWinters",
 #                        periods = 6,
@@ -245,28 +282,7 @@ test_forecast(actual = diesel_ts,
 #plot(md_hw_grid$fitted[,3]) # tendência
 #plot(md_hw_grid$fitted[,4]) # sazonalidade
 
-# 7: MODELO 5 COM TRANSFORMAÇÃO LOGARITMICA
 
-diesel_log_train
-diesel_log_train_diff <- diff(diesel_log_train)
-ggAcf(diesel_log_train)
-ggPacf(diesel_log_train)
-
-ggAcf(diesel_log_train_diff, lag.max = 48)
-ggPacf(diesel_log_train_diff, lag.max = 48)
-
-ggAcf(diff(diesel_log_train_diff,12), lag.max = 48)
-ggPacf(diff(diesel_log_train_diff,12), lag.max = 48)
-
-arima4 <- Arima(diesel_log_train, order = c(5, 1, 2), seasonal = list(order = c(1, 1, 1)), method = "ML")
-arima4$aic
-arima4$bic
-checkresiduals(arima4)
-arima4_fc <- forecast(arima4, h = 12)
-accuracy(exp(arima4_fc$mean), diesel_test)
-
-plot_forecast(arima4_fc)
-test_forecast(actual = diesel_ts_log,
-              forecast.obj = arima4_fc,
-              test = diesel_log_test)
-
+# PROJEÇÃO COM MODELO 6 (LOG SARIMA)
+arima4$coef
+arima4_fc$method
