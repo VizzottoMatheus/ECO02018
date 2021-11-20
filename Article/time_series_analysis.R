@@ -107,100 +107,166 @@ summary(reg_seas) # JAN, MAR, ABRI, MAI, AGO, SET, OUT, NOV
 #ggplot(df_rs, aes(x = ANO_MES, y = VENDAS)) +
 #  geom_line() +
 #  geom_point(data = df_bp, aes(x = dates, y = values), col = "red", size = 2)
-######### MODELOS
 
 
-# 1 - SAZONAL COM TENDÊNCIA SIMPLES
-reg_seas_tren <- tslm(diesel_ts ~ season + trend) # MESES SÃO SIGNIFICATIVOS?
-accuracy(reg_seas_tren$fitted.values, df_rs$VENDAS)
 
-plot(diesel_ts, type = "l")
-lines(reg_seas_tren$fitted.values, col = "red")
+######### MODELOS #########
 
+# SPLIT
+#n_train <- floor(length(diesel_ts)*0.2)
+diesel_split <- ts_split(diesel_ts, sample.out = 12)
+diesel_train <- diesel_split$train
+diesel_test <- diesel_split$test
+
+diesel_log_split <- ts_split(diesel_ts_log, sample.out = 12)
+diesel_log_train <- diesel_log_split$train
+diesel_log_test <- diesel_log_split$test
+
+## 1 - SAZONAL COM TENDÊNCIA SIMPLES
+
+# Série normal
+reg_seas_tren <- tslm(diesel_train ~ season + trend) # MESES SÃO SIGNIFICATIVOS?
+AIC(reg_seas_tren)
+BIC(reg_seas_tren)
+reg1_fc <- forecast(reg_seas_tren, h = 12)
+accuracy(reg1_fc, diesel_test)
+
+plot_forecast(reg1_fc)
+test_forecast(actual = diesel_ts,
+              forecast.obj = reg1_fc,
+              test = diesel_test)
 
 # 2 - SAZONAL COM TENDÊNCIA SIMPLES EM SÉRIE COM LOGARITMO
-reg_seas_tren <- tslm(diesel_ts_log ~ season + trend) # MESES SÃO SIGNIFICATIVOS?
-accuracy(reg_seas_tren$fitted.values, df_rs$VENDAS)
+reg_seas_tren <- tslm(diesel_log_train ~ season + trend)
+AIC(reg_seas_tren)
+BIC(reg_seas_tren)
+reg1_fc <- forecast(reg_seas_tren, h = 12)
+accuracy(reg1_fc, diesel_log_test)
 
-plot(diesel_ts_log, type = "l")
-lines(reg_seas_tren$fitted.values, col = "red")
+plot_forecast(reg1_fc)
+test_forecast(actual = diesel_ts_log,
+              forecast.obj = reg1_fc,
+              test = diesel_log_test)
 
 # 3 - ARIMA (6, 1, 3)
-ggAcf(diesel_ts)
-ggPacf(diesel_ts)
-adf.test(diesel_ts) # presença de raiz unitária
+ggAcf(diesel_train)
+ggPacf(diesel_train)
+adf.test(diesel_train) # presença de raiz unitária
 
-ggAcf(diesel_ts_diff)
-ggPacf(diesel_ts_diff)
+# série diferenciada
+diesel_train_diff <- diff(diesel_train)
+
+ggAcf(diesel_train_diff)
+ggPacf(diesel_train_diff)
 adf.test(diesel_ts_diff) # ausência de raiz unitária
 
-arima1 <- Arima(diesel_ts, order = c(6, 1, 3), method = "ML")
+arima1 <- Arima(diesel_train, order = c(6, 1, 3), method = "ML")
+arima1$aic
+arima1$bic
 checkresiduals(arima1)
-accuracy(arima1$fitted, diesel_ts)
+arima1_fc <- forecast(arima1, h = 12)
+accuracy(arima1_fc, diesel_test)
 
-plot(diesel_ts)
-lines(arima1$fitted, col = "red")
+plot_forecast(arima1_fc)
+test_forecast(actual = diesel_ts,
+              forecast.obj = arima1_fc,
+              test = diesel_test)
 
 # 4 - SARIMA (6, 1, 3) (0, 0, 1)
-arima2 <- Arima(diesel_ts, order = c(6, 1, 3), seasonal = list(order = c(0, 0, 1)))
+arima2 <- Arima(diesel_train, order = c(6, 1, 3), seasonal = list(order = c(0, 0, 1)), method = "ML")
+arima2$aic
+arima2$bic
 checkresiduals(arima2)
-accuracy(arima2$fitted, diesel_ts)
+arima2_fc <- forecast(arima2, h = 12)
+accuracy(arima2_fc, diesel_test)
 
-plot(diesel_ts)
-lines(arima2$fitted, col = "red")
+plot_forecast(arima2_fc)
+test_forecast(actual = diesel_ts,
+              forecast.obj = arima2_fc,
+              test = diesel_test)
 
-# 5 - SARIMA (6, 1, 1) (5, 1, 1) SÉRIE APARENTA DECAIMENTO SAZONAL, MELHOR MODELO ATÉ AGORA
-ggAcf(diesel_ts_diff, lag.max = 48)
+# 5 - SARIMA (5, 1, 1) (2, 1, 1) SÉRIE APARENTA DECAIMENTO SAZONAL; MELHOR MODELO ATÉ AGORA
+ggAcf(diesel_train_diff, lag.max = 48)
 
-diesel_ts_diff_seas <- diff(diesel_ts_diff, 12)
-ggAcf(diesel_ts_diff_seas, lag.max = 48)
-ggPacf(diesel_ts_diff_seas, lag.max = 48)
+diesel_diff_seas <- diff(diesel_train_diff, 12) # diferença sazonal
+ggAcf(diesel_diff_seas, lag.max = 48)
+ggPacf(diesel_diff_seas, lag.max = 48)
 
-
-arima3 <- Arima(diesel_ts, order = c(6, 1, 1), seasonal = list(order = c(1, 1, 1)))
+arima3 <- Arima(diesel_train, order = c(5, 1, 1), seasonal = list(order = c(1, 1, 1)), method = "ML")
+arima3$aic
+arima3$bic
 checkresiduals(arima3)
-accuracy(arima3$fitted, diesel_ts)
+arima3_fc <- forecast(arima3, h = 12)
+accuracy(arima3_fc, diesel_test)
 
-plot(diesel_ts)
-lines(arima3$fitted, col = "red")
+plot_forecast(arima3_fc)
+test_forecast(actual = diesel_ts,
+              forecast.obj = arima3_fc,
+              test = diesel_test)
 
-# HOLT WINTERS
-shallow_grid <- ts_grid(diesel_ts,
-                        model = "HoltWinters",
-                        periods = 6,
-                        window_space = 6,
-                        window_test = 12,
-                        hyper_params = list(alpha = seq(0,1,0.1),
-                                            beta = seq(0,1,0.1),
-                                            gamma = seq(0,1,0.1)),
-                        parallel = TRUE,
-                        n.cores = 8)
-plot_grid(shallow_grid) # alfa: entre 0,1 e 0,5; beta: entre 0 e 0,1; gama: entre 0,1 e 0,3
-plot_grid(shallow_grid, type = "3D", top = 250)
+# 6 - HOLT WINTERS
+#shallow_grid <- ts_grid(diesel_ts,
+#                        model = "HoltWinters",
+#                        periods = 6,
+#                        window_space = 6,
+#                        window_test = 12,
+#                        hyper_params = list(alpha = seq(0,1,0.1),
+#                                            beta = seq(0,1,0.1),
+#                                            gamma = seq(0,1,0.1)),
+#                        parallel = TRUE,
+#                        n.cores = 8)
+#plot_grid(shallow_grid) # alfa: entre 0,1 e 0,5; beta: entre 0 e 0,1; gama: entre 0,1 e 0,3
+#plot_grid(shallow_grid, type = "3D", top = 250)
 
 
-deep_grid <- ts_grid(diesel_ts,
-                     model = "HoltWinters",
-                     periods = 6,
-                     window_space = 6,
-                     window_test = 12,
-                     hyper_params = list(alpha = seq(0.1,0.5,0.01),
-                                         beta = seq(0,0.1,0.01),
-                                         gamma = seq(0.1,0.3,0.01)),
-                     parallel = TRUE,
-                     n.cores = 8)
-plot_grid(deep_grid)
-plot_grid(deep_grid, type = "3D", top = 250)
+#deep_grid <- ts_grid(diesel_ts,
+#                     model = "HoltWinters",
+#                     periods = 6,
+#                     window_space = 6,
+#                     window_test = 12,
+#                     hyper_params = list(alpha = seq(0.1,0.5,0.01),
+#                                         beta = seq(0,0.1,0.01),
+#                                         gamma = seq(0.1,0.3,0.01)),
+#                     parallel = TRUE,
+#                     n.cores = 8)
+#plot_grid(deep_grid)
+#plot_grid(deep_grid, type = "3D", top = 250)
 
-md_hw_grid <- HoltWinters(diesel_ts,
-                          alpha = deep_grid$alpha,
-                          beta = deep_grid$beta,
-                          gamma = deep_grid$gamma)
+#md_hw_grid <- HoltWinters(diesel_ts,
+#                          alpha = deep_grid$alpha,
+#                          beta = deep_grid$beta,
+#                          gamma = deep_grid$gamma)
 
-accuracy(md_hw_grid$fitted, diesel_ts)
+#accuracy(md_hw_grid$fitted, diesel_ts)
 
-plot(diesel_ts)
-lines(md_hw_grid$fitted[,1], col = "red")
+#plot(diesel_ts)
+#lines(md_hw_grid$fitted[,1], col = "red")
 #plot(md_hw_grid$fitted[,2]) # nível
 #plot(md_hw_grid$fitted[,3]) # tendência
 #plot(md_hw_grid$fitted[,4]) # sazonalidade
+
+# 7: MODELO 5 COM TRANSFORMAÇÃO LOGARITMICA
+
+diesel_log_train
+diesel_log_train_diff <- diff(diesel_log_train)
+ggAcf(diesel_log_train)
+ggPacf(diesel_log_train)
+
+ggAcf(diesel_log_train_diff, lag.max = 48)
+ggPacf(diesel_log_train_diff, lag.max = 48)
+
+ggAcf(diff(diesel_log_train_diff,12), lag.max = 48)
+ggPacf(diff(diesel_log_train_diff,12), lag.max = 48)
+
+arima4 <- Arima(diesel_log_train, order = c(5, 1, 2), seasonal = list(order = c(1, 1, 1)), method = "ML")
+arima4$aic
+arima4$bic
+checkresiduals(arima4)
+arima4_fc <- forecast(arima4, h = 12)
+accuracy(exp(arima4_fc$mean), diesel_test)
+
+plot_forecast(arima4_fc)
+test_forecast(actual = diesel_ts_log,
+              forecast.obj = arima4_fc,
+              test = diesel_log_test)
+
