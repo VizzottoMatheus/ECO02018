@@ -286,3 +286,21 @@ accuracy(exp(arima4_fc$mean), diesel_test) # com transormação logaritmica é m
 # PROJEÇÃO COM MODELO 6 (LOG SARIMA)
 arima4$coef
 arima4_fc$method
+
+arima_final <- Arima(log(diesel_ts), order = c(5, 1, 2), seasonal = list(order = c(1, 1, 1)), method = "ML")
+arima_final$coef
+
+ts_info(diesel_ts)
+
+arima_fc <- forecast(arima_final, h = 15)
+
+# projeções
+
+# 2021 (meses faltantes)
+p1 <- window(diesel_ts, start = c(2021,1))
+p2 <- window(exp(arima_fc$mean), end = c(2021, 12))
+vendas_2021 <- c(p1,p2)
+sum(vendas_2021)
+# 2022
+proj_2022 <- window(exp(arima_fc$mean), start = c(2022, 1))
+sum(proj_2020) # 3.866.497 METROS CÚBICOS DE ÓLEO DIESEL NO RS EM 2022
