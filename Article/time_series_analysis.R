@@ -1,3 +1,4 @@
+#setwd('/Users/matheusvizzottodossantos/Desktop/Projetos/R/ECO02018/Article/')
 source("get_data.R")
 library(forecast)
 library(lubridate)
@@ -7,6 +8,7 @@ library(scales)
 library(zoo)
 library(strucchange)
 library(tseries)
+library(plotly)
 
 df_cidades <- oil_data_cities()
 df_rs <- oil_data_state()
@@ -139,8 +141,8 @@ test_forecast(actual = diesel_ts,
 reg_seas_tren <- tslm(diesel_log_train ~ season + trend)
 AIC(reg_seas_tren)
 BIC(reg_seas_tren)
-reg1_fc <- forecast(reg_seas_tren, h = 12)
-accuracy(reg1_fc, diesel_log_test)
+reg2_fc <- forecast(reg_seas_tren, h = 12)
+accuracy(reg2_fc, diesel_log_test)
 
 plot_forecast(reg1_fc)
 test_forecast(actual = diesel_ts_log,
@@ -184,7 +186,7 @@ test_forecast(actual = diesel_ts,
               forecast.obj = arima2_fc,
               test = diesel_test)
 
-# 5 - SARIMA (5, 1, 1) (2, 1, 1) SÉRIE APARENTA DECAIMENTO SAZONAL; MELHOR MODELO ATÉ AGORA
+# 5 - SARIMA (5, 1, 1) (1, 1, 1) SÉRIE APARENTA DECAIMENTO SAZONAL
 ggAcf(diesel_train_diff, lag.max = 48)
 
 diesel_diff_seas <- diff(diesel_train_diff, 12) # diferença sazonal
@@ -228,7 +230,10 @@ accuracy(exp(arima4_fc$mean), diesel_test) # valores transformados
 plot_forecast(arima4_fc)
 test_forecast(actual = diesel_ts_log,
               forecast.obj = arima4_fc,
-              test = diesel_log_test)
+              test = diesel_log_test
+              ) %>%
+  layout(title = "Vendas de óleo diesel - Observado vs Estimado e Projetado",
+         yaxis = list(title = "log de m³"))
 
 #comparando modelos 5 e 6
 #arima3$aic NÃO SE COMPARAM MODELOS COM AIC E BIC QUANDO DIFEREM NOS DADOS (NORMAL VS. LOG)
@@ -242,7 +247,7 @@ accuracy(exp(arima4_fc$mean), diesel_test) # com transormação logaritmica é m
 
 
 # 7 - HOLT WINTERS
-#shallow_grid <- ts_grid(diesel_ts,
+# shallow_grid <- ts_grid(diesel_ts,
 #                        model = "HoltWinters",
 #                        periods = 6,
 #                        window_space = 6,
@@ -252,11 +257,11 @@ accuracy(exp(arima4_fc$mean), diesel_test) # com transormação logaritmica é m
 #                                            gamma = seq(0,1,0.1)),
 #                        parallel = TRUE,
 #                        n.cores = 8)
-#plot_grid(shallow_grid) # alfa: entre 0,1 e 0,5; beta: entre 0 e 0,1; gama: entre 0,1 e 0,3
-#plot_grid(shallow_grid, type = "3D", top = 250)
-
-
-#deep_grid <- ts_grid(diesel_ts,
+# plot_grid(shallow_grid) # alfa: entre 0,1 e 0,5; beta: entre 0 e 0,1; gama: entre 0,1 e 0,3
+# plot_grid(shallow_grid, type = "3D", top = 250)
+# 
+# 
+# deep_grid <- ts_grid(diesel_ts,
 #                     model = "HoltWinters",
 #                     periods = 6,
 #                     window_space = 6,
@@ -266,21 +271,21 @@ accuracy(exp(arima4_fc$mean), diesel_test) # com transormação logaritmica é m
 #                                         gamma = seq(0.1,0.3,0.01)),
 #                     parallel = TRUE,
 #                     n.cores = 8)
-#plot_grid(deep_grid)
-#plot_grid(deep_grid, type = "3D", top = 250)
-
-#md_hw_grid <- HoltWinters(diesel_ts,
-#                          alpha = deep_grid$alpha,
-#                          beta = deep_grid$beta,
-#                          gamma = deep_grid$gamma)
-
-#accuracy(md_hw_grid$fitted, diesel_ts)
-
-#plot(diesel_ts)
-#lines(md_hw_grid$fitted[,1], col = "red")
-#plot(md_hw_grid$fitted[,2]) # nível
-#plot(md_hw_grid$fitted[,3]) # tendência
-#plot(md_hw_grid$fitted[,4]) # sazonalidade
+# plot_grid(deep_grid)
+# plot_grid(deep_grid, type = "3D", top = 250)
+# 
+# md_hw_grid <- HoltWinters(diesel_ts,
+#                           alpha = deep_grid$alpha,
+#                           beta = deep_grid$beta,
+#                           gamma = deep_grid$gamma)
+# 
+# accuracy(md_hw_grid$fitted, diesel_ts)
+# 
+# plot(diesel_ts)
+# lines(md_hw_grid$fitted[,1], col = "red")
+# plot(md_hw_grid$fitted[,2]) # nível
+# plot(md_hw_grid$fitted[,3]) # tendência
+# plot(md_hw_grid$fitted[,4]) # sazonalidade
 
 
 # PROJEÇÃO COM MODELO 6 (LOG SARIMA)
@@ -303,4 +308,4 @@ vendas_2021 <- c(p1,p2)
 sum(vendas_2021)
 # 2022
 proj_2022 <- window(exp(arima_fc$mean), start = c(2022, 1))
-sum(proj_2020) # 3.866.497 METROS CÚBICOS DE ÓLEO DIESEL NO RS EM 2022
+sum(proj_2022) # 3.866.497 METROS CÚBICOS DE ÓLEO DIESEL NO RS EM 2022
